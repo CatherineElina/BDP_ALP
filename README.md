@@ -12,13 +12,27 @@ Current progress:
 - [x] Dataset size validated
 - [x] Dataset schema validated
 - [x] Normalized sample dataset generated
+- [x] Docker Compose infrastructure setup
+- [ ] HDFS data storage setup
+- [x] Spark batch processing
+- [x] Kafka producer simulation
+- [x] Spark Structured Streaming
+- [x] Streamlit dashboard
+- [ ] Final findings and documentation
+
+<!-- - [x] Public GitHub repository initialized
+- [x] Final dataset selected
+- [x] Dataset downloaded from Kaggle
+- [x] Dataset size validated
+- [x] Dataset schema validated
+- [x] Normalized sample dataset generated
 - [ ] Docker Compose infrastructure setup
 - [ ] HDFS data storage setup
 - [ ] Spark batch processing
 - [ ] Kafka producer simulation
 - [ ] Spark Structured Streaming
 - [ ] Streamlit dashboard
-- [ ] Final findings and documentation
+- [ ] Final findings and documentation -->
 
 ---
 
@@ -174,3 +188,48 @@ data/raw/stock_prices_daily.csv
 ```
 
 The raw CSV file is ignored by Git and is not uploaded to this public repository.
+
+## How to Run
+### 1. Clone the Repository
+```bash
+git clone https://github.com/CatherineElina/BDP_ALP.git
+cd BDP_ALP
+```
+### 2. Start Docker Services
+Run all services using Docker Compose:
+```bash
+docker compose up
+```
+### 3. Run Kafka Producer
+Open a new terminal:
+```bash
+python producer/producer.py
+```
+Example producer output:
+
+Sent: AAPL @ 192.45
+Sent: MSFT @ 415.22
+Sent: NVDA @ 120.31
+The producer simulates live stock market events by replaying historical OHLCV records into the Kafka topic stock-events.
+### 4. Run Spark Structured Streaming
+Open another terminal:
+```bash
+docker exec -it bdp-alp-spark-master /opt/spark/bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.0 /opt/spark/jobs/streaming_job.py
+```
+Example Spark output:
+
+Batch: 17
++--------------------+----------+---------+-----------+
+|window              |sector    |avg_close|event_count|
++--------------------+----------+---------+-----------+
+This streaming job consumes Kafka events and continuously aggregates stock market data by sector.
+### 5. Run Batch Analysis
+```bash
+docker exec -it bdp-alp-spark-master /opt/spark/bin/spark-submit /opt/spark/jobs/batch_analysis.py
+```
+### 6. Open the Dashboards
+Service	URL
+Kafka UI:               http://localhost:8080
+Spark Master UI:	http://localhost:8082
+Streamlit Dashboard:	http://localhost:8501
+The Streamlit dashboard will automatically update as streaming data is processed.

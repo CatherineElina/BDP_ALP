@@ -110,6 +110,7 @@ services:
     ports:
       - "8501:8501"
     volumes:
-      - ../week-12/dashboard_data:/app/dashboard_data
+      # - ../week-12/dashboard_data:/app/dashboard_data
+      - ./dashboard_data:/app/dashboard_data
     environment:
       - DASHBOARD_DIR=/app/dashboard_data
