@@ -1,27 +1,6 @@
-# Mac
-.DS_Store
-
-# Python environment
-.venv/
+dashboard_data/
+data/
 __pycache__/
 *.pyc
-
-# Dataset asli dari Kaggle jangan di-upload
-data/raw/*
-!data/raw/.gitkeep
-
-# Output processing
-data/processed/*
-!data/processed/.gitkeep
-
-outputs/batch/*
-!outputs/batch/.gitkeep
-
-outputs/streaming/*
-!outputs/streaming/.gitkeep
-
-# Spark checkpoint
-checkpoints/
-# Kaggle credential protection
-kaggle.json
-.kaggle/
+.ivy2/
+checkpoint/
