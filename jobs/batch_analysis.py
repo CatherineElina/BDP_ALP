@@ -14,6 +14,11 @@ def main():
         inferSchema=True
     )
 
+    df = df.withColumn(
+    "daily_return_pct",
+    ((col("Close") - col("Open")) / col("Open")) * 100
+    )
+    
     print("\n=== Schema ===")
     df.printSchema()
     print(f"Total rows: {df.count()}")
@@ -36,6 +41,14 @@ def main():
         .agg(round(avg("Volume"), 0).alias("avg_volume")) \
         .orderBy(col("avg_volume").desc()) \
         .show()
+
+    print("\n=== Top 5 Companies by Average Daily Return ===")
+
+    df.groupBy("Ticker", "Company_Name") \
+    .agg(round(avg("daily_return_pct"), 2).alias("avg_return_pct")) \
+    .orderBy(col("avg_return_pct").desc()) \
+    .limit(5) \
+    .show()
 
     spark.stop()
 
