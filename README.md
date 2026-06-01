@@ -2,57 +2,23 @@
 
 ## Big Data Processing Final Project
 
-## Project Status
-
-Current progress:
-
-- [x] Public GitHub repository initialized
-- [x] Final dataset selected
-- [x] Dataset downloaded from Kaggle
-- [x] Dataset size validated
-- [x] Dataset schema validated
-- [x] Normalized sample dataset generated
-- [x] Docker Compose infrastructure setup
-- [ ] HDFS data storage setup
-- [x] Spark batch processing
-- [x] Kafka producer simulation
-- [x] Spark Structured Streaming
-- [x] Streamlit dashboard
-- [ ] Final findings and documentation
-
-<!-- - [x] Public GitHub repository initialized
-- [x] Final dataset selected
-- [x] Dataset downloaded from Kaggle
-- [x] Dataset size validated
-- [x] Dataset schema validated
-- [x] Normalized sample dataset generated
-- [ ] Docker Compose infrastructure setup
-- [ ] HDFS data storage setup
-- [ ] Spark batch processing
-- [ ] Kafka producer simulation
-- [ ] Spark Structured Streaming
-- [ ] Streamlit dashboard
-- [ ] Final findings and documentation -->
-
----
-
 ## Final Dataset
 
 This project uses the following final dataset:
 
-**US Stock Market Historical OHLCV**  
-Source: Kaggle  
+**US Stock Market Historical OHLCV**
+Source: Kaggle
 Dataset file: `stock_prices_daily.csv`
 
 ### Dataset Validation Result
 
-| Item | Result |
-|---|---:|
-| Raw CSV size | 33.03 MB |
-| Minimum required dataset size | 10 MB |
-| Size requirement status | Passed |
-| Total records | 184,138 rows |
-| Original number of columns | 11 |
+| Item                          |       Result |
+| ----------------------------- | -----------: |
+| Raw CSV size                  |     33.03 MB |
+| Minimum required dataset size |        10 MB |
+| Size requirement status       |       Passed |
+| Total records                 | 184,138 rows |
+| Original number of columns    |           11 |
 
 ### Original Dataset Columns
 
@@ -72,6 +38,29 @@ volume
 
 The original Kaggle dataset uses the column `company_name`. For consistency with the project design, this column is normalized into `company` during preprocessing.
 
+### Dataset Description
+
+The dataset contains historical daily OHLCV (Open, High, Low, Close, Volume) stock market records from major publicly traded companies in the United States.
+
+Several key fields are heavily used throughout the analytics pipeline:
+
+| Column   | Description                                                 |
+| -------- | ----------------------------------------------------------- |
+| `ticker` | Unique stock symbol used to identify each company           |
+| `sector` | Company business sector used for aggregation and comparison |
+| `open`   | Stock opening price for a trading day                       |
+| `close`  | Stock closing price for a trading day                       |
+| `high`   | Highest trading price during the day                        |
+| `low`    | Lowest trading price during the day                         |
+| `volume` | Total traded shares during the day                          |
+
+The pipeline also generates additional derived metrics for analytics purposes:
+
+| Derived Column     | Description                                         |
+| ------------------ | --------------------------------------------------- |
+| `daily_return_pct` | Percentage change between opening and closing price |
+| `price_range`      | Difference between highest and lowest daily price   |
+
 ### Normalized Sample Data Columns
 
 ```text
@@ -90,13 +79,6 @@ daily_return_pct
 price_range
 ```
 
-Additional derived columns:
-
-| Column | Description |
-|---|---|
-| `daily_return_pct` | Percentage change from open price to close price |
-| `price_range` | Difference between daily high and daily low |
-
 A normalized sample containing 1,000 rows is included in:
 
 ```text
@@ -113,7 +95,52 @@ The full raw dataset is not stored in GitHub. It can be downloaded using:
 
 ## Architecture Diagram
 
-![Architecture Diagram](assets/architecture_diagram.png)
+```text
+                           +----------------------+
+                           | Kaggle CSV Dataset   |
+                           | stock_prices_daily   |
+                           +----------+-----------+
+                                      |
+                                      v
+                        +---------------------------+
+                        | Docker Volume / Local CSV |
+                        +-------------+-------------+
+                                      |
+                                      v
+                     +--------------------------------+
+                     | Hadoop HDFS (NameNode/DataNode)|
+                     | hdfs://namenode:9000/data/... |
+                     +---------------+----------------+
+                                     |
+                    +----------------+----------------+
+                    |                                 |
+                    v                                 v
+
+       +--------------------------+     +--------------------------+
+       | Spark Batch Processing   |     | Kafka Producer Simulator |
+       | batch_analysis.py        |     | producer.py              |
+       +-------------+------------+     +-------------+------------+
+                     |                                |
+                     v                                v
+          +---------------------+         +----------------------+
+          | Batch Analytics     |         | Apache Kafka         |
+          | Sector Aggregation  |         | stock-events topic   |
+          +---------------------+         +-----------+----------+
+                                                      |
+                                                      v
+                                   +----------------------------------+
+                                   | Spark Structured Streaming       |
+                                   | streaming_job.py                 |
+                                   +----------------+-----------------+
+                                                    |
+                                                    v
+                                   +----------------------------------+
+                                   | Streamlit Dashboard              |
+                                   | Real-Time Visualization          |
+                                   +----------------------------------+
+```
+
+---
 
 ## Domain
 
@@ -121,7 +148,9 @@ Finance / Stock Market Analytics
 
 ## Project Description
 
-This project builds an end-to-end big data pipeline for analyzing historical United States stock market data. Historical OHLCV records are processed through batch analytics, while the same records are replayed sequentially to simulate incoming stock market events for streaming analysis.
+This project builds an end-to-end big data pipeline for analyzing historical United States stock market data. Historical OHLCV records are processed through distributed batch analytics using Apache Spark and Hadoop HDFS, while the same records are replayed sequentially to simulate incoming stock market events for streaming analysis using Apache Kafka and Spark Structured Streaming.
+
+The project demonstrates the integration of modern big data technologies for scalable data ingestion, distributed storage, batch processing, real-time streaming analytics, and interactive dashboard visualization.
 
 ## Problem Statement
 
@@ -139,30 +168,38 @@ How can a big data pipeline analyze historical stock performance by company and 
 2. Latest close price per company during replay.
 3. Top companies based on accumulated streaming volume.
 
-## Planned Technology Stack
+## Technology Stack
 
-- Docker Compose
-- Apache Hadoop HDFS
-- Apache Kafka
-- Apache Spark
-- Spark Structured Streaming
-- Streamlit
-- Python
+* Docker Compose
+* Apache Hadoop HDFS
+* Apache Kafka
+* Apache Spark
+* Spark Structured Streaming
+* Streamlit
+* Python
 
-## Planned Pipeline Architecture
+## Pipeline Architecture
 
 ```text
 Kaggle CSV Dataset
         |
-        +----> HDFS Storage ----> Spark Batch Processing ----> Batch Output
+        v
+Hadoop HDFS Storage
         |
-        +----> Python Producer ----> Kafka ----> Spark Structured Streaming
-                                                     |
-                                                     v
-                                             Streamlit Dashboard
+        +----> Spark Batch Processing ----> Batch Analytics Output
+        |
+        +----> Python Kafka Producer ----> Apache Kafka
+                                                 |
+                                                 v
+                                  Spark Structured Streaming
+                                                 |
+                                                 v
+                                      Streamlit Dashboard
 ```
 
-## Dataset Download
+---
+
+# Dataset Download
 
 Install dependencies:
 
@@ -193,83 +230,180 @@ data/raw/stock_prices_daily.csv
 
 The raw CSV file is ignored by Git and is not uploaded to this public repository.
 
-## How to Run
-### 1. Clone the Repository
+---
+
+# How to Run
+
+## 1. Clone the Repository
+
 ```bash
 git clone https://github.com/CatherineElina/BDP_ALP.git
 cd BDP_ALP
 ```
-### 2. Start Docker Services
+
+---
+
+## 2. Start Docker Services
+
 Run all services using Docker Compose:
+
 ```bash
 docker compose up
 ```
-### 3. Run Kafka Producer
+
+This will start:
+
+* Hadoop NameNode
+* Hadoop DataNode
+* Apache Kafka
+* Spark Master
+* Spark Worker
+* Streamlit Dashboard
+
+---
+
+## 3. Upload Dataset to HDFS
+
+### Create HDFS directory
+
+```bash
+docker exec -it bdp-alp-namenode hdfs dfs -mkdir -p /data/stock
+```
+
+### Copy dataset into NameNode container
+
+```bash
+docker cp data/raw/stock_prices_daily.csv bdp-alp-namenode:/tmp/stock_prices_daily.csv
+```
+
+### Upload dataset from container into HDFS
+
+```bash
+docker exec -it bdp-alp-namenode hdfs dfs -put /tmp/stock_prices_daily.csv /data/stock/
+```
+
+### Verify dataset in HDFS
+
+```bash
+docker exec -it bdp-alp-namenode hdfs dfs -ls /data/stock/
+```
+
+Expected output:
+
+```text
+Found 1 items
+-rw-r--r--   1 root supergroup ... /data/stock/stock_prices_daily.csv
+```
+
+---
+
+## 4. Run Spark Batch Analysis
+
 Open a new terminal:
+
+```bash
+docker exec -it bdp-alp-spark-master /opt/spark/bin/spark-submit /opt/spark/jobs/batch_analysis.py
+```
+
+The batch analysis job reads the dataset directly from Hadoop HDFS:
+
+```python
+hdfs://namenode:9000/data/stock/stock_prices_daily.csv
+```
+
+---
+
+## 5. Run Kafka Producer
+
+Open another terminal:
+
 ```bash
 python producer/producer.py
 ```
+
 Example producer output:
 
+```text
 Sent: AAPL @ 192.45
 Sent: MSFT @ 415.22
 Sent: NVDA @ 120.31
-The producer simulates live stock market events by replaying historical OHLCV records into the Kafka topic stock-events.
-### 4. Run Spark Structured Streaming
+```
+
+The producer simulates live stock market events by replaying historical OHLCV records into the Kafka topic `stock-events`.
+
+---
+
+## 6. Run Spark Structured Streaming
+
 Open another terminal:
+
 ```bash
 docker exec -it bdp-alp-spark-master /opt/spark/bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.0 /opt/spark/jobs/streaming_job.py
 ```
+
 Example Spark output:
 
+```text
 Batch: 17
 +--------------------+----------+---------+-----------+
 |window              |sector    |avg_close|event_count|
 +--------------------+----------+---------+-----------+
-This streaming job consumes Kafka events and continuously aggregates stock market data by sector.
-### 5. Run Batch Analysis
-```bash
-docker exec -it bdp-alp-spark-master /opt/spark/bin/spark-submit /opt/spark/jobs/batch_analysis.py
 ```
-### 6. Open the Dashboards
-Service	URL
-Kafka UI:               http://localhost:8080
-Spark Master UI:	http://localhost:8082
-Streamlit Dashboard:	http://localhost:8501
+
+This streaming job consumes Kafka events and continuously aggregates stock market data by sector.
+
+---
+
+## 7. Open the Dashboards
+
+| Service             | URL                   |
+| ------------------- | --------------------- |
+| Hadoop NameNode UI  | http://localhost:9870 |
+| Kafka UI            | http://localhost:8080 |
+| Spark Master UI     | http://localhost:8082 |
+| Streamlit Dashboard | http://localhost:8501 |
+
 The Streamlit dashboard will automatically update as streaming data is processed.
 
-## Expected Output
+---
 
-### Spark Batch Analytics Output
+# Expected Output
 
-The Spark batch analytics job prints historical stock market aggregation results directly to the console.
+## Spark Batch Analytics Output
+
+The Spark batch analytics job processes historical stock market data stored inside Hadoop HDFS and prints aggregation results directly to the console.
 
 The output includes:
-- Average trading volume by sector
-- Top companies by average daily return
-- Most volatile stocks
+
+* Average trading volume by sector
+* Top companies by average daily return
+* Most volatile stocks
 
 ![Spark Batch Output](assets/batch_analysis1.png)
 ![Spark Batch Output](assets/batch_analysis2.png)
+
 ---
 
-### Streamlit Dashboard
+## Streamlit Dashboard
 
 The Streamlit dashboard visualizes live stock market aggregation generated by Spark Structured Streaming.
 
 The dashboard displays:
-- Average closing price by sector
-- Event count per streaming window
-- Historical trend visualization
+
+* Average closing price by sector
+* Event count per streaming window
+* Historical trend visualization
 
 ![Streamlit Dashboard](assets/dashboard1.png)
 ![Streamlit Dashboard](assets/dashboard2.png)
 
-## Findings & Conclusion
+---
 
-### Batch Analytics Findings
+# Findings & Conclusion
 
-The Spark batch analysis successfully processed 184,138 historical US stock market records and generated several important insights across sectors and companies.
+## Batch Analytics Findings
+
+The Spark batch analysis successfully processed 184,138 historical US stock market records stored in Hadoop HDFS and generated several important insights across sectors and companies.
 
 The analysis showed that the Technology sector produced the highest average trading volume, reaching approximately 45.9 million shares, followed by Communication Services and Consumer Cyclical sectors. This indicates that technology-related companies consistently dominate trading activity in the historical dataset.
 
@@ -277,48 +411,61 @@ In terms of average closing price, the Healthcare sector recorded the highest av
 
 The volatility analysis identified several companies with highly fluctuating stock prices. Eli Lilly and Company (LLY) showed the highest price volatility, followed by Costco Wholesale (COST), BlackRock (BLK), Meta Platforms (META), and Goldman Sachs (GS). High volatility indicates stronger stock price fluctuations and potentially higher market risk.
 
-The average daily return analysis showed that Apple (AAPL), Carrier Global Corporation (CARR), and NVIDIA (NVDA) achieved some of the strongest average positive daily returns among the analyzed companies. This suggests relatively stronger daily price growth compared to opening prices.
+The average daily return analysis showed that Apple (AAPL), Carrier Global Corporation (CARR), and NVIDIA (NVDA) achieved some of the strongest average positive daily returns among the analyzed companies.
+
+These batch analytics findings directly address the project problem statement by demonstrating how distributed big data processing can analyze historical stock performance across companies and sectors using Apache Spark and Hadoop HDFS.
 
 ---
 
-### Streaming Analytics Findings
+## Streaming Analytics Findings
 
 The streaming pipeline successfully simulated real-time stock market activity by replaying historical OHLCV records through Apache Kafka.
 
 Spark Structured Streaming continuously consumed Kafka events and aggregated stock market metrics by sector using micro-batch processing and sliding time windows.
 
 The Streamlit dashboard successfully visualized:
-- Average closing price by sector
-- Event counts within streaming windows
-- Historical sector trends
-- Continuously updating live charts
+
+* Average closing price by sector
+* Event counts within streaming windows
+* Historical sector trends
+* Continuously updating live charts
 
 During the simulation, the dashboard demonstrated that certain sectors repeatedly generated higher event frequency and higher average closing prices over time.
 
-The integration between Kafka, Spark Structured Streaming, Docker Compose, and Streamlit successfully enabled near real-time analytics and live visualization.
+The integration between Kafka, Spark Structured Streaming, Docker Compose, Streamlit, and Hadoop HDFS successfully enabled near real-time analytics and distributed batch processing within a unified big data architecture.
+
+These streaming analytics results directly support the second part of the problem statement by demonstrating how real-time stock market activity can be monitored continuously using streaming technologies.
 
 ---
 
-### Conclusion
+## Conclusion
 
-This project successfully implemented an end-to-end big data analytics pipeline using Apache Kafka, Apache Spark Structured Streaming, Docker Compose, and Streamlit.
+This project successfully implemented an end-to-end big data analytics pipeline using Apache Hadoop HDFS, Apache Kafka, Apache Spark, Spark Structured Streaming, Docker Compose, and Streamlit.
 
-The system supports both batch analytics and streaming analytics workflows while processing historical US stock market OHLCV data.
+The system supports both distributed batch analytics and real-time streaming analytics workflows while processing historical US stock market OHLCV data.
 
-The project demonstrates how modern big data technologies can be integrated to ingest, process, aggregate, and visualize large-scale financial datasets in near real time within a containerized environment.
+The project successfully answered the main problem statement by demonstrating:
+
+* How historical stock market data can be processed using distributed batch analytics
+* How simulated stock market events can be monitored in near real time
+* How batch and streaming pipelines can be integrated within one scalable architecture
 
 The final pipeline successfully achieved the main project objectives:
-- Historical stock market batch analysis
-- Real-time event streaming simulation
-- Streaming aggregation using Spark Structured Streaming
-- Interactive live dashboard visualization
-- Reproducible deployment using Docker Compose
 
-## Known Limitations
+* Distributed data storage using Hadoop HDFS
+* Historical stock market batch analysis
+* Real-time event streaming simulation
+* Streaming aggregation using Spark Structured Streaming
+* Interactive live dashboard visualization
+* Reproducible deployment using Docker Compose
 
-- The system uses historical CSV data replay instead of a live stock market API.
-- The current implementation uses Docker-mounted local storage instead of a fully distributed Hadoop HDFS cluster.
-- Streaming throughput and scalability were not benchmarked under high-load production conditions.
-- The dashboard currently focuses on sector-level aggregation and does not include advanced forecasting or machine learning models.
-- Fault tolerance and multi-node distributed deployment were not fully implemented.
-- The Kafka producer replays historical records sequentially and does not simulate actual market timing or irregular trading activity.
+---
+
+# Known Limitations
+
+* The system uses historical CSV data replay instead of a live stock market API.
+* Streaming throughput and scalability were not benchmarked under high-load production conditions.
+* The dashboard currently focuses on sector-level aggregation and does not include advanced forecasting or machine learning models.
+* Fault tolerance and multi-node distributed deployment were not fully implemented.
+* The Kafka producer replays historical records sequentially and does not simulate actual market timing or irregular trading activity.
+* The Hadoop HDFS cluster currently uses a single-node replication configuration (`dfs.replication=1`) intended for development and educational purposes rather than production-scale distributed storage.

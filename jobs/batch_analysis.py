@@ -9,7 +9,7 @@ def main():
     spark.sparkContext.setLogLevel("WARN")
 
     df = spark.read.csv(
-        "/opt/spark/data/stock_prices_daily.csv",
+        "hdfs://namenode:9000/data/stock/stock_prices_daily.csv",
         header=True,
         inferSchema=True
     )
