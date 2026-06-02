@@ -394,8 +394,7 @@ The dashboard displays:
 * Event count per streaming window
 * Historical trend visualization
 
-![Streamlit Dashboard](assets/dashboard1.png)
-![Streamlit Dashboard](assets/dashboard2.png)
+![Streamlit Dashboard](assets/dashboard.png)
 
 ---
 
