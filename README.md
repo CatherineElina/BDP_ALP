@@ -447,7 +447,9 @@ The Consolidated Analytics UI Console utilizes a Top-Down (Macro-to-Micro) Finan
 - Section 3 & 4 (Sector Rotation & Top Movers): Visualizes sector-level capital flows via dual bar charts and isolates extreme asset candidates (Top Gainers, Top Losers, and Volume Anomaly Spikes).
 - Section 5 (Micro Deep-Dive Analysis): An interactive technical analysis workbench rendering responsive **Plotly Candlestick (OHLC)** layers. Axis coordinates are locked using the parameter `fixedrange=True` to guarantee a completely static layout protected against accidental scroll or swipe zoom actions on iPad and tablet devices.
   
-![Streamlit Dashboard](assets/dashboard.png)
+![Streamlit Dashboard](assets/dashboard1.png)
+![Streamlit Dashboard](assets/dashboard2.png)
+
 
 ---
 
