@@ -11,6 +11,15 @@ Source: Kaggle
 Dataset file: `stock_prices_daily.csv`
 
 ### Dataset Validation Result
+The dataset was validated prior to processing.
+
+Validation checks included:
+- Missing value detection
+- Duplicate record detection
+- Data type verification
+- Dataset size verification
+
+No significant data quality issues were identified.
 
 | Item                          |       Result |
 | ----------------------------- | -----------: |
@@ -18,9 +27,9 @@ Dataset file: `stock_prices_daily.csv`
 | Minimum required dataset size |        10 MB |
 | Size requirement status       |       Passed |
 | Total records                 | 184,138 rows |
-| Original number of columns    |           11 |
+| Number of columns             |           11 |
 
-### Original Dataset Columns
+### Dataset Columns
 
 ```text
 date
@@ -35,8 +44,6 @@ close
 adj_close
 volume
 ```
-
-The original Kaggle dataset uses the column `company_name`. For consistency with the project design, this column is normalized into `company` during preprocessing.
 
 ### Dataset Description
 
@@ -54,36 +61,8 @@ Several key fields are heavily used throughout the analytics pipeline:
 | `low`    | Lowest trading price during the day                         |
 | `volume` | Total traded shares during the day                          |
 
-The pipeline also generates additional derived metrics for analytics purposes:
 
-| Derived Column     | Description                                         |
-| ------------------ | --------------------------------------------------- |
-| `daily_return_pct` | Percentage change between opening and closing price |
-| `price_range`      | Difference between highest and lowest daily price   |
-
-### Normalized Sample Data Columns
-
-```text
-date
-ticker
-company
-sector
-industry
-open
-high
-low
-close
-adj_close
-volume
-daily_return_pct
-price_range
-```
-
-A normalized sample containing 1,000 rows is included in:
-
-```text
-data/sample/sample_stock_data.csv
-```
+### How to Get the Data Inside
 
 The full raw dataset is not stored in GitHub. It can be downloaded using:
 
@@ -155,6 +134,14 @@ The project demonstrates the integration of modern big data technologies for sca
 ## Problem Statement
 
 How can a big data pipeline analyze historical stock performance by company and sector while also monitoring simulated stock market activity in real time?
+
+## Project Objectives
+
+1. Store large-scale stock market data using Hadoop HDFS.
+2. Perform distributed historical analysis using Apache Spark.
+3. Simulate real-time stock market activity using Apache Kafka.
+4. Process streaming events using Spark Structured Streaming.
+5. Visualize insights through an interactive Streamlit dashboard.
 
 ## Planned Batch Insights
 
@@ -440,16 +427,19 @@ The output includes:
 
 ## Streamlit Dashboard
 
-The Consolidated Analytics UI Console utilizes a Top-Down (Macro-to-Micro) Financial Framework packed into a highly intuitive single-page execution layout:
+The US Stock Market Intelligence Dashboard serves as the final visualization layer of the streaming analytics pipeline, transforming raw stock transactions into actionable market insights through an integrated Macro-to-Micro Analytical Framework. The dashboard is designed as a single-page monitoring console that supports both real-time observation and historical exploration of market behavior.
 
-- Section 1 (Global Controller): Features a unified Date Range filter at the very top, acting as a global time-horizon selector for the entire environment.
-- Section 2 (Market Pulse): Displays high-level macro variables (Total Volume, Average Return, Volatility, and Advance-Decline Breadth Indicators).
-- Section 3 & 4 (Sector Rotation & Top Movers): Visualizes sector-level capital flows via dual bar charts and isolates extreme asset candidates (Top Gainers, Top Losers, and Volume Anomaly Spikes).
-- Section 5 (Micro Deep-Dive Analysis): An interactive technical analysis workbench rendering responsive **Plotly Candlestick (OHLC)** layers. Axis coordinates are locked using the parameter `fixedrange=True` to guarantee a completely static layout protected against accidental scroll or swipe zoom actions on iPad and tablet devices.
-  
+- Section 1 (Global Controller): Provides a centralized control panel featuring a global Date Range Filter and Sector Filter, allowing analysts to dynamically adjust the analysis horizon and focus on specific market segments without affecting dashboard consistency.
+- Section 2 (Market Pulse): Presents key market-wide indicators including Total Trading Volume, Average Market Return, Market Breadth (Advance-Decline Ratio), and Market Volatility. These KPIs offer an immediate snapshot of overall market conditions and sentiment during the selected trading session.
+- Section 3 (Sector Performance & Capital Flow): Visualizes capital movement across sectors using interactive charts and a sector heatmap. The dashboard highlights sector-level performance by comparing average returns and transaction volumes, enabling quick identification of outperforming and underperforming industries.
+- Section 4 (Market Leaders & Anomaly Detection): Identifies dominant market participants through a ranked leaderboard of actively traded companies and provides anomaly detection capabilities via Top Gainers, Top Losers, and Volume Spike Analysis, helping analysts discover unusual market activities and potential trading opportunities.
+- Section 5 (Interactive Company Explorer): Offers a detailed company-level investigation environment through an interactive Plotly Candlestick (OHLC) Visualization enhanced with Moving Average (MA5 and MA20) overlays. Users can explore historical price behavior for any company available in the dataset. To ensure a stable user experience on desktop and tablet devices, chart axes are configured with fixedrange=True, preventing accidental zooming or scrolling interactions.
+- Section 6 (Streaming Monitoring Layer): Displays the latest records generated by the Kafka–Spark streaming pipeline, providing transparency into real-time data ingestion and enabling validation of the end-to-end processing workflow.
+
+The dashboard also incorporates an optional Auto Refresh Controller, allowing users to enable or disable automatic updates and customize refresh intervals according to monitoring requirements. This feature ensures efficient real-time observation while avoiding unnecessary interface refreshes during analytical investigations.  
 ![Streamlit Dashboard](assets/dashboard1.png)
 ![Streamlit Dashboard](assets/dashboard2.png)
-
+![Streamlit Dashboard](assets/dashboard3.png)
 
 ---
 
@@ -457,38 +447,46 @@ The Consolidated Analytics UI Console utilizes a Top-Down (Macro-to-Micro) Finan
 
 ## Batch Analytics Findings
 
-The Spark batch analysis successfully processed 184,138 historical US stock market records stored in Hadoop HDFS and generated several important insights across sectors and companies.
+The Spark batch analytics pipeline successfully processed **184,138 historical US stock market records** stored within Hadoop HDFS and generated several valuable insights regarding sector performance, trading activity, stock volatility, and company-level returns. By leveraging Apache Spark's distributed processing capabilities, large-scale historical market data was analyzed efficiently across multiple dimensions.
 
-The analysis showed that the Technology sector produced the highest average trading volume, reaching approximately 45.9 million shares, followed by Communication Services and Consumer Cyclical sectors. This indicates that technology-related companies consistently dominate trading activity in the historical dataset.
+The analysis revealed that the **Technology sector** generated the highest average daily trading volume at approximately **45.9 million shares**, significantly exceeding all other sectors. Communication Services and Consumer Cyclical followed with average volumes of approximately **30.9 million** and **27.4 million shares**, respectively. These findings indicate that technology-related companies consistently attracted the highest level of investor participation and market liquidity throughout the observed period.
 
-In terms of average closing price, the Healthcare sector recorded the highest average stock closing price at approximately 247.28, followed by Financial Services and Industrials. This suggests that companies within these sectors generally maintained higher stock price valuations during the observed historical period.
+From a valuation perspective, the **Healthcare sector** recorded the highest average closing stock price at approximately **$247.28**, followed by Financial Services (**$197.98**) and Industrials (**$194.14**). This suggests that companies operating within these sectors generally maintained higher market valuations and stronger price levels compared to other sectors represented in the dataset.
 
-The volatility analysis identified several companies with highly fluctuating stock prices. Eli Lilly and Company (LLY) showed the highest price volatility, followed by Costco Wholesale (COST), BlackRock (BLK), Meta Platforms (META), and Goldman Sachs (GS). High volatility indicates stronger stock price fluctuations and potentially higher market risk.
+The volatility analysis identified several companies exhibiting substantial price fluctuations over time. **Eli Lilly and Company (LLY)** emerged as the most volatile stock with a price standard deviation of approximately **288.8**, followed by **Costco Wholesale Corporation (COST)**, **BlackRock (BLK)**, **Meta Platforms (META)**, and **Goldman Sachs (GS)**. Elevated volatility levels indicate larger price movements and potentially higher investment risk, while also presenting greater opportunities for short-term trading strategies.
 
-The average daily return analysis showed that Apple (AAPL), Carrier Global Corporation (CARR), and NVIDIA (NVDA) achieved some of the strongest average positive daily returns among the analyzed companies.
+The company performance analysis further showed that **Apple Inc. (AAPL)** achieved the highest average daily return at approximately **0.11%**, closely followed by **Carrier Global Corporation (CARR)** and **NVIDIA Corporation (NVDA)** at approximately **0.10%**. These companies demonstrated relatively consistent positive price appreciation throughout the historical observation period, suggesting strong long-term performance compared to their peers.
 
-These batch analytics findings directly address the project problem statement by demonstrating how distributed big data processing can analyze historical stock performance across companies and sectors using Apache Spark and Hadoop HDFS.
+Several findings from the batch analytics stage were also consistent with observations from the streaming analytics dashboard. In particular, the dominance of the Technology sector in trading activity and the strong performance of companies such as NVIDIA highlight recurring market patterns observed across both historical and near real-time analyses.
+
+Overall, these batch analytics results demonstrate how distributed big data processing using Apache Spark and Hadoop HDFS can effectively uncover historical market trends, sector dynamics, risk characteristics, and company performance. The findings directly support the project objective of extracting meaningful business insights from large-scale stock market datasets through scalable big data technologies.
 
 ---
 
 ## Streaming Analytics Findings
 
-The streaming pipeline successfully simulated real-time stock market activity by replaying historical OHLCV records through Apache Kafka.
+The streaming analytics pipeline successfully simulated real-time stock market activity by replaying historical OHLCV (Open, High, Low, Close, Volume) records through Apache Kafka. Each stock transaction was continuously published as an event stream and consumed by Spark Structured Streaming for real-time processing and feature engineering.
 
-Spark Structured Streaming continuously consumed Kafka events and aggregated stock market metrics by sector using micro-batch processing and sliding time windows.
+Spark Structured Streaming transformed incoming events into analytical indicators such as daily return and price range before storing the enriched records for downstream visualization. This enabled the dashboard to continuously update market intelligence metrics while preserving the historical transaction sequence for further analysis.
 
-The Streamlit dashboard successfully visualized:
+The Streamlit dashboard successfully visualized multiple analytical perspectives, including:
 
-* Average closing price by sector
-* Event counts within streaming windows
-* Historical sector trends
-* Continuously updating live charts
+* Market-wide indicators such as Total Trading Volume, Average Market Return, Market Breadth, and Market Volatility.
+* Sector-level performance through return and transaction volume analysis.
+* Market leadership rankings based on trading activity and performance metrics.
+* Top Gainers and Top Losers for identifying the strongest and weakest performing assets.
+* Volume Spike detection to identify unusual trading activity compared to historical averages.
+* Interactive company-level candlestick analysis enhanced with Moving Average (MA5 and MA20) indicators.
+* Live monitoring of the most recent records processed by the streaming pipeline.
 
-During the simulation, the dashboard demonstrated that certain sectors repeatedly generated higher event frequency and higher average closing prices over time.
+During the simulation, the dashboard revealed several meaningful market patterns. Technology and Consumer Cyclical sectors consistently generated the highest trading volumes, indicating strong investor participation. Meanwhile, sector performance varied over time, allowing analysts to observe capital rotation across industries and identify sectors experiencing relative strength or weakness.
 
-The integration between Kafka, Spark Structured Streaming, Docker Compose, Streamlit, and Hadoop HDFS successfully enabled near real-time analytics and distributed batch processing within a unified big data architecture.
+The anomaly detection component successfully highlighted stocks experiencing abnormal trading volume compared to their historical behavior. This provided an effective mechanism for identifying unusual market events and potential investment opportunities.
 
-These streaming analytics results directly support the second part of the problem statement by demonstrating how real-time stock market activity can be monitored continuously using streaming technologies.
+The integration between Apache Kafka, Spark Structured Streaming, Docker Compose, Streamlit, and Hadoop HDFS successfully established an end-to-end big data ecosystem capable of supporting both real-time analytics and historical exploration. The architecture demonstrated how streaming technologies can continuously process, enrich, and visualize stock market information with minimal latency.
+
+These streaming analytics results directly address the project's objective by demonstrating how stock market activity can be monitored, analyzed, and interpreted in near real time using a scalable big data streaming architecture.
+
 
 ---
 
@@ -523,3 +521,75 @@ The final pipeline successfully achieved the main project objectives:
 * Fault tolerance and multi-node distributed deployment were not fully implemented.
 * The Kafka producer replays historical records sequentially and does not simulate actual market timing or irregular trading activity.
 * The Hadoop HDFS cluster currently uses a single-node replication configuration (`dfs.replication=1`) intended for development and educational purposes rather than production-scale distributed storage.
+
+---
+
+## Troubleshooting
+During the development and testing phase of the streaming pipeline, an issue occasionally occurred where the Spark Structured Streaming job stopped updating the dashboard correctly. This happened because the existing **checkpoint directory** and **historical output files** contained metadata from previous streaming sessions, causing Spark to reuse outdated offsets and state information.
+
+When this situation occurs, the following cleanup procedure can be performed before restarting the streaming job:
+
+### Step 1 — Stop Running Containers
+
+```bash
+docker compose down
+```
+
+### Step 2 — Remove Previous Checkpoint Data
+
+```bash
+docker exec -it bdp-alp-spark-master rm -rf /opt/spark/dashboard_data/checkpoint
+```
+
+Or remove it from the mounted host directory:
+
+```bash
+rm -rf dashboard_data/checkpoint
+```
+
+### Step 3 — Remove Historical Streaming Outputs
+
+```bash
+rm dashboard_data/history.jsonl
+```
+
+or
+
+```bash
+docker exec -it bdp-alp-spark-master rm -f /opt/spark/dashboard_data/history.jsonl
+```
+
+### Step 4 — Restart Infrastructure
+
+```bash
+docker compose up -d
+```
+
+### Step 5 — Restart Streaming Job
+
+```bash
+docker exec -it bdp-alp-spark-master \
+/opt/spark/bin/spark-submit \
+--packages org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.0 \
+/opt/spark/jobs/streaming_job.py
+```
+
+### Step 6 — Restart Kafka Producer
+
+```bash
+python producer/producer.py
+```
+
+---
+
+### Root Cause
+
+Spark Structured Streaming stores processing progress inside the checkpoint directory. If historical output files are manually modified, duplicated, or become inconsistent with the checkpoint metadata, Spark may:
+
+* Skip incoming records
+* Continue from outdated offsets
+* Produce duplicated records
+* Stop updating dashboard outputs
+
+Removing both the checkpoint directory and historical output files forces Spark to rebuild the streaming state from a clean environment, ensuring that Kafka events are processed correctly and dashboard metrics remain consistent.
+

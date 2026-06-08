@@ -8,8 +8,7 @@ producer = KafkaProducer(
     value_serializer=lambda v: json.dumps(v).encode('utf-8')
 )
 
-# df = pd.read_csv('../data/stock_prices_daily.csv')
-df = pd.read_csv('data/raw/stock_prices_daily.csv')
+df = pd.read_csv('data/stock_prices_daily.csv')
 print(f"Loaded {len(df)} rows. Starting to produce...")
 
 for _, row in df.iterrows():
