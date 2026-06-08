@@ -1,6 +1,20 @@
-dashboard_data/
-data/
+# Python Virtual Environment (Kritis: Mencegah error interpreter path di komputer lain)
+.venv/
+venv/
+ENV/
+
+# Python Cache & Compiled Files
 __pycache__/
 *.pyc
-.ivy2/
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Project Data & Artifacts (Abaikan file dataset mentah dan output streaming lokal)
+data/
+dashboard_data/
 checkpoint/
+
+# Build & Dependency Managers Cache
+.ivy2/
+.gradle/

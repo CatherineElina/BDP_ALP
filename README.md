@@ -405,9 +405,17 @@ kaggle auth login
 
 2. Jalankan script unduhan:
 
+
+**Bagi Pengguna Linux / Mac / Windows Git Bash:**
 ```bash
 chmod +x scripts/download_dataset.sh
 ./scripts/download_dataset.sh
+```
+
+**Bagi Pengguna Windows (PowerShell):**
+
+```bash
+kaggle datasets download -d asadullahcreative/us-stock-market-historical-ohlcv-dataset -p data/raw --unzip
 ```
 
 Dataset mentah berbentuk CSV akan tersimpan secara lokal di folder `data/raw/stock_prices_daily.csv`. File ini sudah otomatis diabaikan oleh `.gitignore` agar tidak mengotori repositori GitHub.
