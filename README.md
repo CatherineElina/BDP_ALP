@@ -17,6 +17,7 @@
 * [Streamlit Dashboard](#streamlit-dashboard)
 * [Findings & Conclusion](#findings--conclusion)
 * [Known Limitations](#known-limitations)
+* [Contributors](#contributors)
 
 ---
 
@@ -829,6 +830,19 @@ The final pipeline successfully achieved the main project objectives:
 * The Hadoop HDFS cluster currently uses a single-node replication configuration (`dfs.replication=1`) intended for development and educational purposes rather than production-scale distributed storage.
 
 ---
+
+# 👥 Contributors
+
+| Name | NIM |
+|------|-----|
+| Ruby Arthalia Golden | 0706022310035 |
+| Amanda Renata Go | 0706022310010 |
+| Catherine Eline Santoso | 0706022310009 |
+| Deborah Michelle Kwandinata | 0706022310014 |
+| Feylin Christelia | 0706022310012 |
+
+--- 
+
 <!-- 
 ## Troubleshooting
 During the development and testing phase of the streaming pipeline, an issue occasionally occurred where the Spark Structured Streaming job stopped updating the dashboard correctly. This happened because the existing **checkpoint directory** and **historical output files** contained metadata from previous streaming sessions, causing Spark to reuse outdated offsets and state information.
