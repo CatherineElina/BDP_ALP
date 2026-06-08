@@ -483,7 +483,7 @@ Found 1 items
 Buka terminal baru, **aktifkan virtual environment Anda terlebih dahulu**, lalu jalankan job analisis batch historis:
 
 ```bash
-# Aktifkan .venv di terminal baru ini sebelum menjalankan command
+# Aktifkan .venv di terminal baru ini sebelum menjalankan command (jika belum aktif)
 # Windows (PowerShell): .venv\Scripts\Activate.ps1
 # Linux/Mac: source .venv/bin/activate
 
@@ -495,6 +495,79 @@ docker exec -it bdp-alp-spark-master /opt/spark/bin/spark-submit /opt/spark/jobs
 
 Job ini akan memproses data langsung dari HDFS (hdfs://namenode:9000/data/stock/stock_prices_daily.csv) dan mencetak metrik agregasi di konsol.
 
+**Expected Output (Spark Batch Analytics Console Logs):**
+
+```bash
+=== Schema ===
+root
+ |-- Date: timestamp (nullable = true)
+ |-- Ticker: string (nullable = true)
+ |-- Company_Name: string (nullable = true)
+ |-- Sector: string (nullable = true)
+ |-- Industry: string (nullable = true)
+ |-- Open: double (nullable = true)
+ |-- High: double (nullable = true)
+ |-- Low: double (nullable = true)
+ |-- Close: double (nullable = true)
+ |-- Adj_Close: double (nullable = true)
+ |-- Volume: integer (nullable = true)
+ |-- daily_return_pct: double (nullable = true)
+
+Total rows: 184138
+
+=== Average Closing Price by Sector ===
++--------------------+---------+
+|              Sector|avg_close|
++--------------------+---------+
+|          Healthcare|   247.28|
+|  Financial Services|   197.98|
+|         Industrials|   194.14|
+|          Technology|   177.51|
+|   Consumer Cyclical|   177.08|
+|  Consumer Defensive|   163.57|
+|     Basic Materials|   153.75|
+|Communication Ser...|   110.05|
+|              Energy|    77.97|
++--------------------+---------+
+
+=== Top 5 Most Volatile Stocks ===
++------+--------------------+--------------------+------------+
+|Ticker|        Company_Name|              Sector|price_stddev|
++------+--------------------+--------------------+------------+
+|   LLY|Eli Lilly and Com...|          Healthcare|       288.8|
+|  COST|Costco Wholesale ...|  Consumer Defensive|      240.16|
+|   BLK|     BlackRock, Inc.|  Financial Services|      191.29|
+|  META|Meta Platforms, Inc.|Communication Ser...|      183.22|
+|    GS|The Goldman Sachs...|  Financial Services|      181.65|
++------+--------------------+--------------------+------------+
+
+=== Average Daily Volume by Sector ===
++--------------------+-----------+
+|              Sector| avg_volume|
++--------------------+-----------+
+|          Technology|4.5870624E7|
+|Communication Ser...|3.0883702E7|
+|   Consumer Cyclical|2.7396078E7|
+|              Energy|  9726925.0|
+|  Financial Services|  8848670.0|
+|  Consumer Defensive|  7819863.0|
+|          Healthcare|  6171474.0|
+|     Basic Materials|  5080293.0|
+|         Industrials|  4141391.0|
++--------------------+-----------+
+
+=== Top 5 Companies by Average Daily Return ===
++------+--------------------+--------------+
+|Ticker|        Company_Name|avg_return_pct|
++------+--------------------+--------------+
+|  AAPL|          Apple Inc.|          0.11|
+|  CARR|Carrier Global Co...|           0.1|
+|  NVDA|   NVIDIA Corporation|           0.1|
+|    GS|The Goldman Sachs...|          0.08|
+|   NEM| Newmont Corporation|          0.08|
++------+--------------------+--------------+
+```
+
 ---
 
 ## 7. Run Kafka Producer (Stream Simulator)
@@ -502,7 +575,7 @@ Job ini akan memproses data langsung dari HDFS (hdfs://namenode:9000/data/stock/
 Buka terminal baru lainnya untuk mulai mensimulasikan data pasar saham secara real-time. Anda wajib mengaktifkan virtual environment pada terminal baru ini karena script produsen berjalan langsung menggunakan Python interpreter lokal di laptop Anda:
 
 ```bash
-# Wajib aktifkan .venv di terminal baru ini agar library 'kafka-python' / 'pandas' terdeteksi
+# Wajib aktifkan .venv di terminal baru ini agar library 'kafka-python' / 'pandas' terdeteksi (jika belum aktif)
 # Windows (PowerShell): .venv\Scripts\Activate.ps1
 # Linux/Mac: source .venv/bin/activate
 
@@ -560,76 +633,6 @@ Sekarang Anda dapat memantau jalannya pipeline dan visualisasi data melalui URL 
 Dashboard Streamlit akan melakukan *hot-reload* dan memperbarui grafiknya secara otomatis seiring data streaming diproses.
 
 
----
-
-# Expected Output
-
-## Spark Batch Analytics Output
-
-The Spark batch analytics job processes historical stock market data stored inside Hadoop HDFS and prints aggregation results directly to the console.
-
-The output includes:
-
-* Average trading volume by sector
-* Top companies by average daily return
-* Most volatile stocks
-
-```text
-=== Average Closing Price by Sector ===
-+--------------------+---------+
-|              Sector|avg_close|
-+--------------------+---------+
-|          Healthcare|   247.28|
-|  Financial Services|   197.98|
-|         Industrials|   194.14|
-|          Technology|   177.51|
-|   Consumer Cyclical|   177.08|
-|  Consumer Defensive|   163.57|
-|     Basic Materials|   153.75|
-|Communication Ser...|   110.05|
-|              Energy|    77.97|
-+--------------------+---------+
-
-
-=== Top 5 Most Volatile Stocks ===
-+------+--------------------+--------------------+------------+
-|Ticker|        Company_Name|              Sector|price_stddev|
-+------+--------------------+--------------------+------------+
-|   LLY|Eli Lilly and Com...|          Healthcare|       288.8|
-|  COST|Costco Wholesale ...|  Consumer Defensive|      240.16|
-|   BLK|     BlackRock, Inc.|  Financial Services|      191.29|
-|  META|Meta Platforms, Inc.|Communication Ser...|      183.22|
-|    GS|The Goldman Sachs...|  Financial Services|      181.65|
-+------+--------------------+--------------------+------------+
-
-
-=== Average Daily Volume by Sector ===
-+--------------------+-----------+
-|              Sector| avg_volume|
-+--------------------+-----------+
-|          Technology|4.5870624E7|
-|Communication Ser...|3.0883702E7|
-|   Consumer Cyclical|2.7396078E7|
-|              Energy|  9726925.0|
-|  Financial Services|  8848670.0|
-|  Consumer Defensive|  7819863.0|
-|          Healthcare|  6171474.0|
-|     Basic Materials|  5080293.0|
-|         Industrials|  4141391.0|
-+--------------------+-----------+
-
-
-=== Top 5 Companies by Average Daily Return ===
-+------+--------------------+--------------+
-|Ticker|        Company_Name|avg_return_pct|
-+------+--------------------+--------------+
-|  AAPL|          Apple Inc.|          0.11|
-|  CARR|Carrier Global Co...|           0.1|
-|  NVDA|  NVIDIA Corporation|           0.1|
-|    GS|The Goldman Sachs...|          0.08|
-|   NEM| Newmont Corporation|          0.08|
-+------+--------------------+--------------+
-```
 ---
 
 ## Streamlit Dashboard
