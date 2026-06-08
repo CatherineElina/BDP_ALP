@@ -262,7 +262,7 @@ docker exec -it bdp-alp-namenode hdfs dfs -mkdir -p /data/stock
 ### Copy dataset into NameNode container
 
 ```bash
-docker cp data/raw/stock_prices_daily.csv bdp-alp-namenode:/tmp/stock_prices_daily.csv
+docker cp data/stock_prices_daily.csv bdp-alp-namenode:/tmp/stock_prices_daily.csv
 ```
 
 ### Upload dataset from container into HDFS
