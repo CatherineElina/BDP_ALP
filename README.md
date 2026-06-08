@@ -188,7 +188,7 @@ Hadoop HDFS Storage
 
 ---
 
-# Dataset Download
+<!-- # Dataset Download
 
 Install dependencies:
 
@@ -351,7 +351,204 @@ This streaming job consumes Kafka events and continuously aggregates stock marke
 | Spark Master UI     | http://localhost:8082 |
 | Streamlit Dashboard | http://localhost:8501 |
 
-The Streamlit dashboard will automatically update as streaming data is processed.
+The Streamlit dashboard will automatically update as streaming data is processed. -->
+
+# How to Run
+
+Silakan ikuti langkah-langkah di bawah ini secara berurutan untuk menjalankan seluruh pipeline dari awal.
+
+## 1. Clone the Repository
+
+```bash
+git clone https://github.com/CatherineElina/BDP_ALP.git
+cd BDP_ALP
+```
+
+---
+
+## 2. Environment Setup & Dependency Installation
+
+> ⚠️ **PENTING:** Karena setiap sistem memiliki path Python yang berbeda, **jangan gunakan folder `.venv` bawaan repository** jika ter-clone. Anda wajib membuat Virtual Environment baru di laptop sendiri untuk menghindari error interpreter path (*"executable not found"*).
+
+### Langkah Setup Environment:
+
+```bash
+# 1. Hapus folder .venv lama jika ada (opsional)
+# Windows (PowerShell): Remove-Item -Recurse -Force .venv
+# Linux/Mac: rm -rf .venv
+
+# 2. Buat virtual environment baru 
+python3 -m venv .venv
+
+# 3. Aktifkan virtual environment
+# Di Windows (PowerShell):
+.venv\Scripts\Activate.ps1
+# Di Linux/Mac:
+source .venv/bin/activate
+
+# 4. Install seluruh dependencies proyek
+pip install -r producer/requirements.txt
+pip install kaggle pandas
+```
+
+---
+
+## 3. Download Dataset
+
+Sebelum menjalankan service, unduh dataset resmi terlebih dahulu:
+
+1. Pastikan Anda sudah login atau memiliki kredensial Kaggle di laptop Anda:
+
+```bash
+kaggle auth login
+```
+
+2. Jalankan script unduhan:
+
+```bash
+chmod +x scripts/download_dataset.sh
+./scripts/download_dataset.sh
+```
+
+Dataset mentah berbentuk CSV akan tersimpan secara lokal di folder `data/raw/stock_prices_daily.csv`. File ini sudah otomatis diabaikan oleh `.gitignore` agar tidak mengotori repositori GitHub.
+
+---
+
+## 4. Start Docker Services
+
+Jalankan seluruh infrastruktur big data menggunakan Docker Compose:
+
+```bash
+docker compose up -d
+```
+
+Perintah ini akan menyalakan service berikut di latar belakang:
+
+* Hadoop NameNode & DataNode
+* Apache Kafka
+* Apache Spark Master & Worker
+* Streamlit Dashboard
+
+---
+
+## 5. Upload Dataset to Hadoop HDFS
+
+Salin dataset lokal yang baru diunduh ke dalam ekosistem penyimpanan terdistribusi HDFS:
+
+### Create HDFS directory
+
+```bash
+docker exec -it bdp-alp-namenode hdfs dfs -mkdir -p /data/stock
+```
+
+### Copy dataset into NameNode container
+
+```bash
+docker cp data/stock_prices_daily.csv bdp-alp-namenode:/tmp/stock_prices_daily.csv
+```
+
+### Upload dataset from container into HDFS
+
+```bash
+docker exec -it bdp-alp-namenode hdfs dfs -put /tmp/stock_prices_daily.csv /data/stock/
+```
+
+### Verify dataset in HDFS
+
+```bash
+docker exec -it bdp-alp-namenode hdfs dfs -ls /data/stock/
+```
+
+**Expected Output:**
+
+```text
+Found 1 items
+-rw-r--r--   1 root supergroup ... /data/stock/stock_prices_daily.csv
+```
+
+---
+
+## 6. Run Spark Batch Analysis
+
+Buka terminal baru, **aktifkan virtual environment Anda terlebih dahulu**, lalu jalankan job analisis batch historis:
+
+```bash
+# Aktifkan .venv di terminal baru ini sebelum menjalankan command
+# Windows (PowerShell): .venv\Scripts\Activate.ps1
+# Linux/Mac: source .venv/bin/activate
+
+# Jalankan Spark Batch Job
+docker exec -it bdp-alp-spark-master /opt/spark/bin/spark-submit /opt/spark/jobs/batch_analysis.py
+```
+
+>💡 Informasi: Perintah docker exec di atas berjalan langsung di dalam isolated container, sehingga proses internal Docker tidak membutuhkan aktivasi .venv lokal Anda. Namun, pastikan virtual environment lokal Anda tetap aktif di terminal ini untuk menjaga konsistensi environment project Anda.
+
+Job ini akan memproses data langsung dari HDFS (hdfs://namenode:9000/data/stock/stock_prices_daily.csv) dan mencetak metrik agregasi di konsol.
+
+---
+
+## 7. Run Kafka Producer (Stream Simulator)
+
+Buka terminal baru lainnya untuk mulai mensimulasikan data pasar saham secara real-time. Anda wajib mengaktifkan virtual environment pada terminal baru ini karena script produsen berjalan langsung menggunakan Python interpreter lokal di laptop Anda:
+
+```bash
+# Wajib aktifkan .venv di terminal baru ini agar library 'kafka-python' / 'pandas' terdeteksi
+# Windows (PowerShell): .venv\Scripts\Activate.ps1
+# Linux/Mac: source .venv/bin/activate
+
+# Jalankan Python Kafka Producer
+python producer/producer.py
+```
+
+**Example Producer Output:**
+
+```text
+Sent: AAPL @ 192.45
+Sent: MSFT @ 415.22
+Sent: NVDA @ 120.31
+```
+
+Script ini membaca data historis dan mengirimkannya baris demi baris ke Kafka topic `stock-events`.
+
+---
+
+## 8. Run Spark Structured Streaming
+
+Buka terminal baru satu lagi untuk memproses aliran data dari Kafka secara real-time:
+
+```bash
+# Aktifkan .venv di terminal baru ini (opsional/untuk konsistensi)
+# Windows (PowerShell): .venv\Scripts\Activate.ps1
+# Linux/Mac: source .venv/bin/activate
+
+# Jalankan Spark Streaming Job
+docker exec -it bdp-alp-spark-master /opt/spark/bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.0 /opt/spark/jobs/streaming_job.py
+```
+
+>⚠️ Catatan Penting: Sama seperti langkah Batch Analysis, perintah docker exec ini mengeksekusi Spark-Submit langsung di dalam Docker container master. Oleh karena itu, perintah ini tidak membutuhkan .venv lokal laptop Anda untuk bekerja, karena Spark akan menggunakan dependensi Java/Scala/Python yang sudah terisolasi di dalam kontainer Docker tersebut.
+
+**Example Spark Output:**
+
+```text
+[Batch 1] Successfully appended 752 engineered records to historical log
+[Batch 2] Successfully appended 183 engineered records to historical log
+```
+
+---
+
+## 9. Open the Dashboards
+
+Sekarang Anda dapat memantau jalannya pipeline dan visualisasi data melalui URL berikut:
+
+| Service | URL |
+| --- | --- |
+| **Streamlit Dashboard** | http://localhost:8501 |
+| Hadoop NameNode UI | http://localhost:9870 |
+| Kafka UI | http://localhost:8080 |
+| Spark Master UI | http://localhost:8082 |
+
+Dashboard Streamlit akan melakukan *hot-reload* dan memperbarui grafiknya secara otomatis seiring data streaming diproses.
+
 
 ---
 
