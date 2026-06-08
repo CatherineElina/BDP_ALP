@@ -424,11 +424,14 @@ Dataset mentah berbentuk CSV akan tersimpan secara lokal di folder `data/raw/sto
 
 ## 4. Start Docker Services
 
-Jalankan seluruh infrastruktur big data menggunakan Docker Compose:
+Sebelum menjalankan perintah di bawah ini, **pastikan aplikasi Docker Desktop sudah dibuka dan sedang berjalan (running)** di laptop Anda. Jika Docker Desktop belum aktif, perintah di bawah ini akan memicu error *"docker daemon is not running"*.
 
+Setelah Docker Desktop dipastikan aktif, jalankan seluruh infrastruktur big data menggunakan Docker Compose:
 ```bash
 docker compose up -d
 ```
+
+>💡 Informasi: Parameter -d (detached mode) digunakan agar seluruh service berjalan di latar belakang (background), sehingga terminal ini tidak terkunci dan tetap bisa Anda gunakan untuk langkah berikutnya.
 
 Perintah ini akan menyalakan service berikut di latar belakang:
 
@@ -452,10 +455,9 @@ docker exec -it bdp-alp-namenode hdfs dfs -mkdir -p /data/stock
 ### Copy dataset into NameNode container
 
 ```bash
-docker cp data/stock_prices_daily.csv bdp-alp-namenode:/tmp/stock_prices_daily.csv
+docker cp data/raw/stock_prices_daily.csv bdp-alp-namenode:/tmp/stock_prices_daily.csv
 ```
-
-### Upload dataset from container into HDFS
+### Upload dari container ke Hadoop HDFS
 
 ```bash
 docker exec -it bdp-alp-namenode hdfs dfs -put /tmp/stock_prices_daily.csv /data/stock/
